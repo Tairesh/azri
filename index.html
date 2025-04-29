@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Azri — Your personal diary</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            // Configure Tailwind CSS
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            sans: ["Inter", "sans-serif"],
+                        },
+                        colors: {
+                            "theme-violet": {
+                                light: "#E9E7F5",
+                                DEFAULT: "#6D28D9", // violet-700
+                                dark: "#4C1D95", // violet-900
+                            },
+                            "text-muted": "#6b7280", // gray-500
+                        },
+                    },
+                },
+            };
+        </script>
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/prosemirror-view/style/prosemirror.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/prosemirror-menu/style/menu.css"
+        />
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/prosemirror-example-setup/style/style.css"
+        />
+        <style>
+            /* Basic styling */
+            .entry-box {
+                border: 1px solid #e5e7eb;
+                background-color: #ffffff;
+                padding: 1rem;
+                margin-bottom: 1rem;
+                border-radius: 0.5rem;
+                box-shadow:
+                    0 1px 3px 0 rgba(0, 0, 0, 0.05),
+                    0 1px 2px 0 rgba(0, 0, 0, 0.03);
+                transition:
+                    box-shadow 0.2s ease-in-out,
+                    transform 0.1s ease-in-out;
+                cursor: pointer;
+            }
+            .entry-box:hover {
+                box-shadow:
+                    0 4px 6px -1px rgba(0, 0, 0, 0.07),
+                    0 2px 4px -1px rgba(0, 0, 0, 0.04);
+            }
+            .entry-box:active {
+                transform: scale(0.99);
+            }
+
+            .fab-button {
+                background-color: theme(
+                    "colors.theme-violet.DEFAULT"
+                ) !important;
+                color: white !important;
+                box-shadow: 0 4px 14px 0 rgba(109, 40, 217, 0.3);
+                transition:
+                    background-color 0.2s ease-in-out,
+                    box-shadow 0.2s ease-in-out,
+                    transform 0.2s ease-out,
+                    opacity 0.2s ease-out;
+            }
+            .fab-button:hover {
+                background-color: theme("colors.theme-violet.dark") !important;
+                box-shadow: 0 6px 20px 0 rgba(76, 29, 149, 0.35);
+            }
+            .fab-button.hidden {
+                /* Hide FAB when form is open */
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            /* Styling for Side Panel (Right Side) */
+            .side-panel-overlay {
+                position: fixed;
+                inset: 0;
+                background-color: rgba(0, 0, 0, 0.4);
+                z-index: 30;
+                opacity: 0;
+                visibility: hidden;
+                transition:
+                    opacity 0.3s ease-in-out,
+                    visibility 0.3s ease-in-out;
+            }
+            .side-panel-overlay.visible {
+                opacity: 1;
+                visibility: visible;
+            }
+            .side-panel {
+                position: fixed;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: 75%;
+                max-width: 300px;
+                background-color: #ffffff;
+                box-shadow: -4px 0px 15px rgba(0, 0, 0, 0.1);
+                transform: translateX(100%);
+                transition: transform 0.3s ease-in-out;
+                z-index: 40;
+                display: flex;
+                flex-direction: column;
+            }
+            .side-panel.open {
+                transform: translateX(0);
+            } /* Slide in from right */
+            .menu-item {
+                display: block;
+                padding: 0.75rem 1.5rem;
+                color: #374151;
+                font-medium: 500;
+                border-bottom: 1px solid #e5e7eb;
+                transition:
+                    background-color 0.2s ease-in-out,
+                    color 0.2s ease-in-out;
+                cursor: pointer;
+            }
+            .menu-item:hover {
+                background-color: theme("colors.theme-violet.light");
+                color: theme("colors.theme-violet.DEFAULT");
+            }
+            .menu-item svg {
+                display: inline-block;
+                margin-right: 0.75rem;
+                width: 1.25rem;
+                height: 1.25rem;
+                vertical-align: middle;
+                opacity: 0.7;
+            }
+            .menu-item:hover svg {
+                opacity: 1;
+            }
+
+            /* Styling for Inline New Entry Form Container */
+            #new-entry-form-container {
+                background-color: white;
+                border-radius: 0.5rem;
+                border: 1px solid #e5e7eb;
+                box-shadow:
+                    0 1px 3px 0 rgba(0, 0, 0, 0.05),
+                    0 1px 2px 0 rgba(0, 0, 0, 0.03);
+                margin-bottom: 1rem;
+                max-height: 0;
+                opacity: 0;
+                overflow: hidden;
+                padding-top: 0;
+                padding-bottom: 0;
+                transition:
+                    max-height 0.5s ease-in-out,
+                    opacity 0.3s ease-in-out,
+                    padding 0.4s ease-in-out;
+            }
+            #new-entry-form-container.visible {
+                max-height: 600px;
+                opacity: 1;
+                padding-top: 1rem;
+                padding-bottom: 1rem;
+            }
+
+            /* ProseMirror editor specific styles */
+            #inline-editor-content .ProseMirror {
+                border: 1px solid #d1d5db;
+                border-radius: 0.375rem;
+                padding: 0.5rem;
+                min-height: 150px;
+                outline: none;
+            }
+            #inline-editor-content .ProseMirror:focus-within {
+                border-color: theme("colors.theme-violet.DEFAULT");
+                box-shadow: 0 0 0 1px theme("colors.theme-violet.DEFAULT");
+            }
+
+            /* Custom scrollbar */
+            ::-webkit-scrollbar {
+                width: 6px;
+            }
+            ::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 10px;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: #d1d5db;
+                border-radius: 10px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: #9ca3af;
+            }
+        </style>
+    </head>
+    <body
+        class="bg-gray-100 font-sans h-screen flex flex-col items-center justify-center"
+    >
+        <div id="side-panel-overlay" class="side-panel-overlay"></div>
+
+        <aside id="side-panel" class="side-panel">
+            <div
+                class="p-4 border-b border-gray-200 bg-theme-violet text-white"
+            >
+                <h2 class="text-lg font-semibold">Azri</h2>
+            </div>
+            <nav class="flex-grow overflow-y-auto">
+                <a href="#" class="menu-item"
+                    ><svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z"
+                        />
+                    </svg>
+                    Calendar View</a
+                >
+                <a href="#" class="menu-item"
+                    ><svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
+                        />
+                    </svg>
+                    Triggers</a
+                >
+                <a href="#" class="menu-item"
+                    ><svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.31h5.518a.562.562 0 0 1 .329 1.004l-4.04 2.986a.562.562 0 0 0-.184.53l1.5 4.996a.562.562 0 0 1-.84.61l-4.725-3.35a.562.562 0 0 0-.586 0L6.982 21.54a.562.562 0 0 1-.84-.61l1.5-4.996a.562.562 0 0 0-.184-.53l-4.04-2.986a.562.562 0 0 1 .329-1.004h5.518a.563.563 0 0 0 .475-.31L11.48 3.5Z"
+                        />
+                    </svg>
+                    Good Moments</a
+                >
+                <a href="#" class="menu-item"
+                    ><svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                        />
+                    </svg>
+                    Tasks Done</a
+                >
+            </nav>
+            <div class="mt-auto border-t border-gray-200">
+                <a href="#" class="menu-item"
+                    ><svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"
+                        />
+                    </svg>
+                    About</a
+                >
+                <a href="#" class="menu-item"
+                    ><svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"
+                        />
+                    </svg>
+                    Help</a
+                >
+                <div class="p-4 text-xs text-gray-400 text-center">
+                    Azri v0.1.0
+                </div>
+            </div>
+        </aside>
+
+        <div
+            class="container mx-auto max-w-md h-[100vh] bg-white shadow-xl rounded-lg flex flex-col relative overflow-hidden border border-gray-200"
+        >
+            <header
+                class="bg-theme-violet text-white p-4 shadow-md sticky top-0 z-10 flex-shrink-0 flex items-center justify-between"
+            >
+                <div class="w-6 h-6"></div>
+                <h1 class="text-xl font-semibold">Ilia's diary</h1>
+                <button
+                    id="menu-button"
+                    class="p-1 text-white hover:bg-theme-violet-dark rounded focus:outline-none focus:ring-2 focus:ring-white"
+                    aria-label="Open menu"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M4 6h16M4 12h16M4 18h16"
+                        />
+                    </svg>
+                </button>
+            </header>
+
+            <main
+                id="main-content"
+                class="flex-grow overflow-y-auto p-4 bg-gray-50"
+            >
+                <div id="new-entry-form-container">
+                    <div class="p-4">
+                        <div class="mb-4">
+                            <label
+                                for="entry-date"
+                                class="block text-sm font-medium text-gray-700 mb-1"
+                                >Date:</label
+                            >
+                            <input
+                                type="date"
+                                id="entry-date"
+                                name="entry-date"
+                                class="w-full p-2 border border-gray-300 rounded-md focus:ring-theme-violet focus:border-theme-violet"
+                            />
+                        </div>
+                        <div class="mb-4">
+                            <label
+                                class="block text-sm font-medium text-gray-700 mb-1"
+                                >How was your day?</label
+                            >
+                            <div id="inline-editor-content"></div>
+                        </div>
+                        <div class="flex justify-end space-x-3">
+                            <button
+                                id="cancel-entry-button"
+                                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-sm font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                id="save-entry-button"
+                                class="px-4 py-2 bg-theme-violet text-white rounded-md hover:bg-theme-violet-dark text-sm font-medium"
+                            >
+                                Save Entry
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="entry-list">
+                    <div class="entry-box" data-entry-id="1">
+                        <p class="text-base font-medium text-gray-800">
+                            April 29, 2025
+                        </p>
+                        <p class="text-sm text-text-muted mt-1">
+                            Felt stressed about the upcoming deadline, but
+                            managed to finish the first draft...
+                        </p>
+                        <img
+                            src="https://placehold.co/600x400/E9E7F5/4C1D95?text=Entry+Image"
+                            alt="Diary entry image placeholder"
+                            class="mt-3 rounded-md object-cover w-full h-32"
+                            onerror="this.style.display='none'"
+                        />
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <span
+                                class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium"
+                                >Trigger: Work</span
+                            >
+                            <span
+                                class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium"
+                                >Task Done</span
+                            >
+                        </div>
+                    </div>
+                    <div class="entry-box" data-entry-id="2">
+                        <p class="text-base font-medium text-gray-800">
+                            April 28, 2025
+                        </p>
+                        <p class="text-sm text-text-muted mt-1">
+                            Had a really nice walk by the sea this afternoon.
+                            The weather was perfect...
+                        </p>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            <span
+                                class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium"
+                                >Good Moment ✨</span
+                            >
+                        </div>
+                    </div>
+                    <div class="entry-box" data-entry-id="3">
+                        <p class="text-base font-medium text-gray-800">
+                            April 27, 2025
+                        </p>
+                        <p class="text-sm text-text-muted mt-1">
+                            Met up with friends, felt good to connect. Talked
+                            about...
+                        </p>
+                        <img
+                            src="https://placehold.co/600x300/E9E7F5/4C1D95?text=Friends"
+                            alt="Diary entry image placeholder"
+                            class="mt-3 rounded-md object-cover w-full h-32"
+                            onerror="this.style.display='none'"
+                        />
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <span
+                                class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium"
+                                >Good Moment 😊</span
+                            >
+                            <span
+                                class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium"
+                                >Trigger: Social</span
+                            >
+                        </div>
+                    </div>
+                    <div class="entry-box" data-entry-id="4">
+                        <p class="text-base font-medium text-gray-800">
+                            April 26, 2025
+                        </p>
+                        <p class="text-sm text-text-muted mt-1">
+                            Spent the morning cleaning the apartment. Felt
+                            productive afterwards...
+                        </p>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            <span
+                                class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium"
+                                >Task Done</span
+                            >
+                        </div>
+                    </div>
+                    <div class="entry-box opacity-50" data-entry-id="5">
+                        <p class="text-base font-medium text-gray-800">
+                            April 25, 2025
+                        </p>
+                        <p class="text-sm text-text-muted mt-1">
+                            Just a quiet day today, nothing much to report...
+                        </p>
+                    </div>
+                </div>
+            </main>
+
+            <div class="absolute bottom-6 right-6 z-20">
+                <button
+                    id="new-entry-button"
+                    class="fab-button text-white rounded-full w-14 h-14 flex items-center justify-center bg-theme-violet focus:bg-theme-dark-violet focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-theme-violet"
+                    aria-label="Create new entry"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-7 w-7"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="3"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M12 6v12m6-6H6"
+                        />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <script type="module">
+            // Import ProseMirror modules
+            import { EditorState } from "https://unpkg.com/prosemirror-state?module";
+            import { EditorView } from "https://unpkg.com/prosemirror-view?module";
+            import { Schema } from "https://unpkg.com/prosemirror-model?module";
+            import { schema as basicSchema } from "https://unpkg.com/prosemirror-schema-basic?module";
+            import { addListNodes } from "https://unpkg.com/prosemirror-schema-list?module";
+            import { exampleSetup } from "https://unpkg.com/prosemirror-example-setup?module";
+
+            // Define the schema
+            const mySchema = new Schema({
+                nodes: addListNodes(
+                    basicSchema.spec.nodes,
+                    "paragraph block*",
+                    "block",
+                ),
+                marks: basicSchema.spec.marks,
+            });
+
+            // --- Global variable for the inline editor instance ---
+            let inlineEditorView = null;
+
+            document.addEventListener("DOMContentLoaded", () => {
+                // --- Inline Form Elements ---
+                const newEntryButton =
+                    document.getElementById("new-entry-button"); // FAB
+                const formContainer = document.getElementById(
+                    "new-entry-form-container",
+                );
+                const cancelEntryButton = document.getElementById(
+                    "cancel-entry-button",
+                );
+                const saveEntryButton =
+                    document.getElementById("save-entry-button");
+                const entryDateInput = document.getElementById("entry-date");
+                const inlineEditorMountPoint = document.getElementById(
+                    "inline-editor-content",
+                );
+                const mainContentArea = document.getElementById("main-content");
+
+                // --- Other Elements ---
+                const entryBoxes = document.querySelectorAll(".entry-box");
+                const menuButton = document.getElementById("menu-button"); // Now on right
+                const sidePanel = document.getElementById("side-panel");
+                const sidePanelOverlay =
+                    document.getElementById("side-panel-overlay");
+
+                // --- Function to initialize or update the inline editor ---
+                const setupInlineEditor = () => {
+                    if (!inlineEditorMountPoint) {
+                        console.error("Inline editor mount point not found!");
+                        return;
+                    }
+                    inlineEditorMountPoint.innerHTML = ""; // Clear previous
+                    console.log(
+                        "Creating new ProseMirror instance for inline form.",
+                    );
+                    try {
+                        const state = EditorState.create({
+                            schema: mySchema,
+                            plugins: exampleSetup({ schema: mySchema }),
+                        });
+                        inlineEditorView = new EditorView(
+                            inlineEditorMountPoint,
+                            { state },
+                        );
+                        setTimeout(() => inlineEditorView?.focus(), 50);
+                    } catch (error) {
+                        console.error(
+                            "Error initializing ProseMirror inline:",
+                            error,
+                        );
+                        inlineEditorMountPoint.innerHTML = `<p class="text-red-500 p-2">Error loading editor. Check console.</p>`;
+                        inlineEditorView = null;
+                    }
+                };
+
+                // --- Function to destroy the inline editor ---
+                const destroyInlineEditor = () => {
+                    if (inlineEditorView) {
+                        try {
+                            inlineEditorView.destroy();
+                            console.log("Destroyed inline editor instance.");
+                        } catch (error) {
+                            console.error("Error destroying editor:", error);
+                        } finally {
+                            inlineEditorView = null;
+                            if (inlineEditorMountPoint)
+                                inlineEditorMountPoint.innerHTML = "";
+                        }
+                    }
+                };
+
+                // --- Inline Form Logic ---
+                const openInlineForm = () => {
+                    if (!formContainer) return;
+                    const today = new Date().toISOString().split("T")[0];
+                    entryDateInput.value = today;
+                    formContainer.classList.add("visible");
+                    newEntryButton.classList.add("hidden");
+                    if (mainContentArea)
+                        mainContentArea.scrollTo({
+                            top: 0,
+                            behavior: "smooth",
+                        });
+                    setupInlineEditor();
+                };
+
+                const closeInlineForm = () => {
+                    if (!formContainer) return;
+                    formContainer.classList.remove("visible");
+                    newEntryButton.classList.remove("hidden");
+                    destroyInlineEditor();
+                };
+
+                if (newEntryButton)
+                    newEntryButton.addEventListener("click", openInlineForm);
+                if (cancelEntryButton)
+                    cancelEntryButton.addEventListener(
+                        "click",
+                        closeInlineForm,
+                    );
+
+                if (saveEntryButton) {
+                    saveEntryButton.addEventListener("click", () => {
+                        const date = entryDateInput.value;
+                        let entryContentJSON = null;
+                        let entryContentText = "No content";
+
+                        if (inlineEditorView) {
+                            entryContentJSON =
+                                inlineEditorView.state.doc.toJSON();
+                            entryContentText =
+                                inlineEditorView.state.doc.textContent.substring(
+                                    0,
+                                    100,
+                                ) + "...";
+                            console.log(
+                                "Content from ProseMirror:",
+                                entryContentJSON,
+                            );
+                        } else {
+                            console.warn("Inline editor view not available.");
+                        }
+
+                        alert(
+                            `Entry for ${date} saved (Placeholder)! Content logged to console.`,
+                        );
+                        closeInlineForm();
+
+                        // --- Placeholder: Add new entry to the top of the list ---
+                        const entryList = document.getElementById("entry-list");
+                        if (entryList) {
+                            const newEntryDiv = document.createElement("div");
+                            newEntryDiv.className =
+                                "entry-box opacity-0 transition-opacity duration-500";
+                            newEntryDiv.setAttribute(
+                                "data-entry-id",
+                                `new-${Date.now()}`,
+                            );
+                            newEntryDiv.innerHTML = `
+                            <p class="text-base font-medium text-gray-800">${date}</p>
+                            <p class="text-sm text-text-muted mt-1">${entryContentText}</p>
+                            <div class="mt-2 flex flex-wrap gap-2"> <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">New</span> </div>`;
+                            entryList.prepend(newEntryDiv);
+                            setTimeout(
+                                () => newEntryDiv.classList.remove("opacity-0"),
+                                50,
+                            );
+                        }
+                    });
+                }
+
+                // --- Entry Box Click Logic ---
+                entryBoxes.forEach((box) => {
+                    box.addEventListener("click", () => {
+                        const entryId = box.getAttribute("data-entry-id");
+                        console.log(`Clicked entry box with ID: ${entryId}`);
+                        alert(
+                            `Simulating opening full view for Entry ID: ${entryId}`,
+                        );
+                    });
+                });
+
+                // --- Side Panel Logic (Right Side) ---
+                const openSidePanel = () => {
+                    if (sidePanel && sidePanelOverlay) {
+                        sidePanel.classList.add("open");
+                        sidePanelOverlay.classList.add("visible");
+                    }
+                };
+                const closeSidePanel = () => {
+                    if (sidePanel && sidePanelOverlay) {
+                        sidePanel.classList.remove("open");
+                        sidePanelOverlay.classList.remove("visible");
+                    }
+                };
+                if (menuButton)
+                    menuButton.addEventListener("click", openSidePanel); // Button is now on the right
+                if (sidePanelOverlay) {
+                    sidePanelOverlay.addEventListener("click", closeSidePanel);
+                }
+                if (sidePanel) {
+                    sidePanel.querySelectorAll(".menu-item").forEach((item) => {
+                        item.addEventListener("click", (e) => {
+                            console.log(
+                                `Clicked menu item: ${item.textContent.trim()}`,
+                            );
+                            closeSidePanel();
+                        });
+                    });
+                }
+            });
+        </script>
+    </body>
+</html>
