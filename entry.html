@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Azri Mockup - Full Entry View (Refined Design)</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400&display=swap"
+            rel="stylesheet"
+        />
+
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css"
+            integrity="sha512-EZLkOqwILORob+p0BXZc+Vm3RgJBOe1Iq/0fiI7r/wJgzOFZMlsqTa29UEl6v6U6gsV4uIpsNZoV32YZSYFouw=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        />
+
+        <style>
+            /* Custom Styles */
+            body {
+                font-family: "Inter", sans-serif;
+                background-color: #f8fafc;
+                color: #374151;
+            }
+
+            /* Header Styling - Adjusted Gradient */
+            .app-header {
+                /* More distinct purple gradient */
+                background: linear-gradient(
+                    to right,
+                    #a78bfa,
+                    #7c3aed
+                ); /* violet-400 to violet-600 */
+                color: white;
+                padding: 15px 0;
+                margin-bottom: 30px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .app-header .container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .app-header h1 {
+                font-size: 1.25rem;
+                font-weight: 600;
+                margin: 0;
+                text-align: center;
+                flex-grow: 1;
+            }
+            .header-button {
+                background: none;
+                border: none;
+                color: white;
+                padding: 8px;
+                border-radius: 50%;
+                cursor: pointer;
+                line-height: 0;
+                transition: background-color 0.2s ease;
+            }
+            .header-button:hover {
+                background-color: rgba(255, 255, 255, 0.2);
+            }
+            .header-button svg {
+                width: 24px;
+                height: 24px;
+            }
+
+            /* Main Content Styling */
+            #main-content {
+                background-color: #ffffff;
+                padding: 20px 15px 40px 15px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                margin-bottom: 40px;
+                position: relative; /* Positioning context for stickers */
+                overflow: hidden;
+            }
+            @media (min-width: 550px) {
+                #main-content {
+                    padding: 30px 40px 50px 40px;
+                }
+            }
+
+            .entry-image {
+                max-width: 100%;
+                height: auto;
+                max-height: 300px;
+                object-fit: cover;
+                border-radius: 8px;
+                margin-bottom: 30px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            /* Entry Text Styling */
+            .entry-content {
+                position: relative;
+                z-index: 1;
+            }
+            .entry-content p {
+                line-height: 1.7;
+                margin-bottom: 1.5rem;
+                font-size: 1rem;
+                color: #374151;
+            }
+            @media (min-width: 550px) {
+                .entry-content p {
+                    font-size: 1.05rem;
+                }
+            }
+            .entry-content strong,
+            .entry-content b {
+                font-weight: 600;
+                color: #1f2937;
+            }
+            .entry-content em,
+            .entry-content i {
+                font-style: italic;
+            }
+            .entry-content h3 {
+                font-size: 1.3rem;
+                font-weight: 600;
+                margin-top: 2rem;
+                margin-bottom: 1rem;
+                color: #7c3aed; /* Adjusted theme color */
+            }
+            .entry-content ol {
+                list-style: decimal inside;
+                margin-left: 0.5rem;
+                margin-bottom: 1.5rem;
+            }
+            .entry-content ol li {
+                margin-bottom: 0.5rem;
+                line-height: 1.7;
+            }
+
+            /* Marker highlight styles */
+            .mark-trigger {
+                background-color: rgba(254, 202, 202, 0.6);
+                padding: 0.1rem 0.1rem;
+                margin: 0 -0.1rem;
+                border-radius: 3px;
+                box-decoration-break: clone;
+                -webkit-box-decoration-break: clone;
+            }
+            .mark-moment {
+                background-color: rgba(187, 247, 208, 0.6);
+                padding: 0.1rem 0.1rem;
+                margin: 0 -0.1rem;
+                border-radius: 3px;
+                box-decoration-break: clone;
+                -webkit-box-decoration-break: clone;
+            }
+
+            /* Tooltip for hover - Updated Font */
+            .marked-text {
+                position: relative;
+                cursor: default;
+            }
+            .tooltip {
+                position: absolute;
+                bottom: 100%;
+                left: 50%;
+                transform: translateX(-50%) translateY(-5px);
+                background-color: rgba(
+                    0,
+                    0,
+                    0,
+                    0.8
+                ); /* Slightly darker tooltip */
+                color: white;
+                padding: 5px 10px; /* Slightly larger padding */
+                border-radius: 4px;
+                font-family: "Roboto Mono", monospace;
+                font-size: 1rem;
+                white-space: nowrap;
+                opacity: 0;
+                visibility: hidden;
+                transition:
+                    opacity 0.2s ease-in-out,
+                    visibility 0.2s ease-in-out;
+                z-index: 10;
+            }
+            .marked-text:hover .tooltip {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            /* Sticker Element Styling - Updated Positions */
+            .sticker-element {
+                position: absolute;
+                width: 60px;
+                height: auto;
+                z-index: 5;
+                cursor: grab;
+                user-select: none;
+                filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.2));
+            }
+            .sticker-element:active {
+                cursor: grabbing;
+            }
+        </style>
+    </head>
+    <body>
+        <header class="app-header">
+            <div class="container">
+                <button
+                    id="back-button"
+                    class="header-button"
+                    aria-label="Go back"
+                    onclick="window.location = 'index.html'"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M15 19l-7-7 7-7"
+                        />
+                    </svg>
+                </button>
+                <h1>April 27, 2025</h1>
+                <button
+                    id="edit-button"
+                    class="header-button"
+                    aria-label="Edit entry"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                        />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="container" id="main-content">
+            <div class="row">
+                <div class="twelve columns">
+                    <img
+                        src="https://placehold.co/100x100/f0a/fff?text=🌵"
+                        alt="Cactus Sticker"
+                        class="sticker-element"
+                        style="
+                            top: 15px;
+                            right: 15px;
+                            width: 55px;
+                            transform: rotate(10deg);
+                        "
+                    />
+                    <img
+                        src="https://placehold.co/120x80/a0f/fff?text=🌈"
+                        alt="Rainbow Sticker"
+                        class="sticker-element"
+                        style="
+                            top: 280px;
+                            left: 20px;
+                            width: 70px;
+                            transform: rotate(-8deg);
+                        "
+                    />
+                    <img
+                        src="https://placehold.co/80x80/f88/fff?text=🍄"
+                        alt="Mushroom Sticker"
+                        class="sticker-element"
+                        style="
+                            bottom: 15%;
+                            right: 10px;
+                            width: 45px;
+                            transform: rotate(5deg) scale(0.9);
+                        "
+                    />
+                    <img
+                        src="https://placehold.co/90x90/8f8/fff?text=🌸"
+                        alt="Flower Sticker"
+                        class="sticker-element"
+                        style="
+                            bottom: 15px;
+                            left: 15px;
+                            width: 60px;
+                            transform: rotate(-5deg);
+                        "
+                    />
+
+                    <div class="entry-content">
+                        <img
+                            src="https://placehold.co/600x300/E9E7F5/4C1D95?text=Friends+Cafe"
+                            alt="Diary entry image placeholder"
+                            class="entry-image u-max-full-width"
+                            onerror="this.style.display='none'"
+                        />
+
+                        <p>
+                            Met up with <strong>friends</strong> today, which
+                            was mostly really nice 🥳.
+                            <span class="marked-text"
+                                ><span class="mark-moment"
+                                    >We talked about old times and laughed a lot
+                                    about that trip we took years ago. It felt
+                                    good to connect and just be silly for a
+                                    while.</span
+                                ><span class="tooltip"
+                                    >Good Moment 😊</span
+                                ></span
+                            >
+                            That part was definitely a highlight. We sat at that
+                            cafe with the nice outdoor seating,
+                            <em>perfect weather</em> for it.
+                        </p>
+
+                        <h3>Reflections on the Conversation</h3>
+                        <p>
+                            Things got a bit heavier later though.
+                            <span class="marked-text"
+                                ><span class="mark-trigger"
+                                    >The conversation shifted to future plans,
+                                    careers, and where everyone is
+                                    heading.</span
+                                ><span class="tooltip"
+                                    >Trigger: Social</span
+                                ></span
+                            >
+                            I started feeling that familiar anxiety creep in 😥,
+                            comparing myself and worrying if I'm falling behind.
+                            It's frustrating how quickly my mood can shift when
+                            that topic comes up. It always seems to happen when
+                            we discuss:
+                        </p>
+                        <ol>
+                            <li>Job titles and promotions.</li>
+                            <li>
+                                Relationship milestones (engagements, houses,
+                                etc.).
+                            </li>
+                            <li>General feelings of 'progress' in life.</li>
+                        </ol>
+
+                        <p>
+                            Need to remember that
+                            <em>everyone's path is different</em>. Still,
+                            <span class="marked-text"
+                                ><span class="mark-trigger"
+                                    >that <strong>comparison trap</strong> is
+                                    hard to avoid sometimes, especially when
+                                    scrolling through social media later</span
+                                ><span class="tooltip"
+                                    >Trigger: Comparison</span
+                                ></span
+                            >
+                            (which I probably shouldn't have done 🤦‍♀️). It just
+                            reinforces those feelings of inadequacy.
+                        </p>
+                        <p>
+                            Overall, a mixed day.
+                            <span class="marked-text"
+                                ><span class="mark-moment"
+                                    >Grateful for the laughter and
+                                    friendship</span
+                                ><span class="tooltip">Good Moment</span></span
+                            >, but need to work on managing the anxiety around
+                            future uncertainty. Added a little star here just
+                            because ⭐.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
