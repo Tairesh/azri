@@ -193,18 +193,19 @@
                 visibility: visible;
             }
 
-            /* Sticker Element Styling - Updated Positions */
             .sticker-element {
-                position: absolute;
-                width: 60px;
-                height: auto;
                 z-index: 5;
-                cursor: grab;
-                user-select: none;
-                filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.2));
+                filter: drop-shadow(5px 5px 6px rgba(0, 0, 0, 0.3));
             }
-            .sticker-element:active {
-                cursor: grabbing;
+
+            .sticker-element.left {
+                float: left;
+                margin-right: 1.5em;
+            }
+
+            .sticker-element.right {
+                float: right;
+                margin-left: 1.5em;
             }
         </style>
     </head>
@@ -257,50 +258,6 @@
         <div class="container" id="main-content">
             <div class="row">
                 <div class="twelve columns">
-                    <img
-                        src="https://placehold.co/100x100/f0a/fff?text=🌵"
-                        alt="Cactus Sticker"
-                        class="sticker-element"
-                        style="
-                            top: 15px;
-                            right: 15px;
-                            width: 55px;
-                            transform: rotate(10deg);
-                        "
-                    />
-                    <img
-                        src="https://placehold.co/120x80/a0f/fff?text=🌈"
-                        alt="Rainbow Sticker"
-                        class="sticker-element"
-                        style="
-                            top: 280px;
-                            left: 20px;
-                            width: 70px;
-                            transform: rotate(-8deg);
-                        "
-                    />
-                    <img
-                        src="https://placehold.co/80x80/f88/fff?text=🍄"
-                        alt="Mushroom Sticker"
-                        class="sticker-element"
-                        style="
-                            bottom: 15%;
-                            right: 10px;
-                            width: 45px;
-                            transform: rotate(5deg) scale(0.9);
-                        "
-                    />
-                    <img
-                        src="https://placehold.co/90x90/8f8/fff?text=🌸"
-                        alt="Flower Sticker"
-                        class="sticker-element"
-                        style="
-                            bottom: 15px;
-                            left: 15px;
-                            width: 60px;
-                            transform: rotate(-5deg);
-                        "
-                    />
 
                     <div class="entry-content">
                         <img
@@ -329,6 +286,14 @@
                         </p>
 
                         <h3>Reflections on the Conversation</h3>
+                        <img
+                                src="https://placehold.co/90x90/8f8/fff?text=Flower"
+                                alt="Flower Sticker"
+                                class="sticker-element left"
+                                style="
+                                    transform: rotate(-26deg);
+                                "
+                            />
                         <p>
                             Things got a bit heavier later though.
                             <span class="marked-text"
@@ -337,7 +302,7 @@
                                     careers, and where everyone is
                                     heading.</span
                                 ><span class="tooltip"
-                                    >Trigger: Social</span
+                                    >Trigger: Social 😥</span
                                 ></span
                             >
                             I started feeling that familiar anxiety creep in 😥,
@@ -355,6 +320,14 @@
                             <li>General feelings of 'progress' in life.</li>
                         </ol>
 
+                        <img
+                                src="https://placehold.co/90x90/8f8/fff?text=Flower"
+                                alt="Flower Sticker"
+                                class="sticker-element right"
+                                style="
+                                    transform: rotate(26deg);
+                                "
+                            />
                         <p>
                             Need to remember that
                             <em>everyone's path is different</em>. Still,
@@ -364,7 +337,7 @@
                                     hard to avoid sometimes, especially when
                                     scrolling through social media later</span
                                 ><span class="tooltip"
-                                    >Trigger: Comparison</span
+                                    >Trigger: Comparison 😥</span
                                 ></span
                             >
                             (which I probably shouldn't have done 🤦‍♀️). It just
@@ -376,7 +349,7 @@
                                 ><span class="mark-moment"
                                     >Grateful for the laughter and
                                     friendship</span
-                                ><span class="tooltip">Good Moment</span></span
+                                ><span class="tooltip">Good Moment 😊</span></span
                             >, but need to work on managing the anxiety around
                             future uncertainty. Added a little star here just
                             because ⭐.
