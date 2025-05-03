@@ -12,14 +12,6 @@
             rel="stylesheet"
         />
 
-        <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css"
-            integrity="sha512-EZLkOqwILORob+p0BXZc+Vm3RgJBOe1Iq/0fiI7r/wJgzOFZMlsqTa29UEl6v6U6gsV4uIpsNZoV32YZSYFouw=="
-            crossorigin="anonymous"
-            referrerpolicy="no-referrer"
-        />
-
         <style>
             /* Custom Styles */
             body {
@@ -27,6 +19,7 @@
                 background-color: #f8fafc;
                 color: #374151;
                 margin: 0;
+                padding: 0;
             }
 
             /* Header Styling (Unchanged) */
@@ -70,14 +63,13 @@
                 height: 24px;
             }
 
-            /* Main Content Area (Unchanged) */
+            /* Main Content Area */
             #main-content-area {
-                padding: 20px 0;
                 flex-grow: 1;
                 overflow-y: auto;
             }
 
-            /* Entry Card Styling - Updated Layout */
+            /* Entry Card Styling */
             .entry-card {
                 background-color: #ffffff;
                 border: none;
@@ -204,7 +196,6 @@
                 box-shadow:
                     0 4px 6px -1px rgba(0, 0, 0, 0.05),
                     0 2px 4px -2px rgba(0, 0, 0, 0.05);
-                margin-bottom: 1.5rem;
                 max-height: 0;
                 opacity: 0;
                 overflow: hidden;
@@ -214,7 +205,7 @@
                     padding 0.4s ease-in-out;
             }
             #new-entry-form-container.visible {
-                max-height: 600px;
+                max-height: 9999px;
                 opacity: 1;
             }
             .form-header {
@@ -235,10 +226,10 @@
                 background-color: #f9fafb;
             }
             input[type="text"].title-input {
-                border: none;
-                border-bottom: 1px dashed #d1d5db;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
                 outline: none;
-                padding: 0.25rem 0;
+                padding: 0.5rem 0.7rem;
                 font-size: 1.1rem;
                 font-weight: 500;
                 background-color: transparent;
@@ -248,7 +239,8 @@
                 transition: border-color 0.2s ease;
             }
             input[type="text"].title-input:focus {
-                border-bottom: 1px solid #7c3aed;
+                border: 1px solid #7c3aed;
+                box-shadow: 0 0 0 1px #7c3aed;
             }
             input[type="text"].title-input::placeholder {
                 color: #9ca3af;
